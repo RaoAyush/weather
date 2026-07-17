@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather  &amp; Packing Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#eef1f6;
+    --bg-2:#dfe4ee;
+    --accent:#c98a3e;
+    --accent-soft:#c98a3e33;
+    --ink:#171a23;
+    --ink-soft:#5b6172;
+    --paper:#ffffff;
+    --line:#d8dce6;
+    --shadow: 0 20px 50px -25px rgba(23,26,35,0.35);
+    transition: background 0.6s ease;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    background: radial-gradient(circle at 15% -10%, var(--bg-2), var(--bg-1) 55%);
+    min-height:100vh;
+    padding: 40px 20px 80px;
+  }
+
+  .app{max-width: 980px; margin: 0 auto;}
+
+  header.top{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom: 28px; flex-wrap:wrap; gap:10px;
+  }
+  header.top h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: clamp(24px, 4vw, 34px);
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  header.top .tagline{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+  }
+
+  
+  .instrument-strip{
+    height:6px;
+    border-radius:6px;
+    margin-bottom:24px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--bg-2) 100%);
+    box-shadow: var(--shadow);
+  }
+
+  form.search{
+    display:flex; gap:10px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    padding:8px;
+    border-radius:14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+    flex-wrap:wrap;
+  }
+  form.search input[type="text"]{
+    flex:1 1 220px;
+    border:none; outline:none;
+    font-family:'Inter', sans-serif;
+    font-size:15px;
+    padding:12px 14px;
+    background:transparent;
+    color:var(--ink);
+    min-width:0;
+  }
+  form.search input::placeholder{color:#9aa0af;}
+  .search-actions{display:flex; gap:8px;}
+  button{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  button:active{transform: scale(0.97);}
+  button:disabled{opacity:0.55; cursor:not-allowed; transform:none;}
+
+  .btn-primary{
+    background:var(--ink);
+    color:#fff;
+    padding:12px 22px;
+  }
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    padding:12px 14px;
+    font-size:13px;
+  }
+  .btn-ghost:hover{border-color:var(--ink-soft);}
+
+  .unit-toggle{
+    display:inline-flex;
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .unit-toggle button{
+    background:transparent;
+    color:var(--ink-soft);
+    padding:8px 14px;
+    border-radius:0;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+  }
+  .unit-toggle button.active{
+    background:var(--ink);
+    color:#fff;
+  }
+
+  .status{
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    padding:12px 16px;
+    border-radius:10px;
+    margin-bottom:18px;
+    border:1px solid #e2b8b8;
+    background:#fbeceb;
+    color:#8a2f24;
+  }
+  .status.info{
+    border-color: var(--line);
+    background: var(--paper);
+    color: var(--ink-soft);
+  }
+
+  .dashboard{
+    display:grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap:18px;
+    margin-bottom:18px;
+  }
+  @media (max-width: 720px){
+    .dashboard{grid-template-columns: 1fr;}
+  }
+
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:22px;
+    box-shadow: var(--shadow);
+    position:relative;
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:4px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+
+  .card h2{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--ink-soft);
+    margin:0 0 14px;
+  }
+
+  .current-city{
+    font-family:'Fraunces', serif;
+    font-size: clamp(22px, 3vw, 28px);
+    font-weight:600;
+    margin:0 0 4px;
+  }
+  .current-sub{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:18px;
+  }
+  .temp-row{
+    display:flex; align-items:flex-end; gap:14px; margin-bottom:16px;
+  }
+  .temp-big{
+    font-family:'Fraunces', serif;
+    font-size:64px;
+    font-weight:600;
+    line-height:1;
+  }
+  .condition-icon{font-size:40px; line-height:1;}
+  .condition-label{
+    font-size:15px; font-weight:600; margin-top:2px;
+  }
+
+  .metric-grid{
+    display:grid; grid-template-columns: 1fr 1fr; gap:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+  }
+  .metric{
+    background: var(--bg-1);
+    border-radius:10px;
+    padding:10px 12px;
+  }
+  .metric .label{color:var(--ink-soft); font-size:11px; text-transform:uppercase; letter-spacing:0.06em;}
+  .metric .value{font-size:16px; margin-top:2px;}
+
+  .packing-condition{
+    font-size:14px;
+    color: var(--ink-soft);
+    margin-bottom:14px;
+  }
+  ul.packing-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+  ul.packing-list li{
+    display:flex; align-items:center; gap:10px;
+    background:var(--bg-1);
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:14px;
+  }
+  ul.packing-list li .check{
+    width:16px; height:16px; border-radius:4px;
+    border:1.5px solid var(--ink-soft);
+    flex:0 0 auto;
+  }
+  .packing-empty{
+    font-size:13px; color:var(--ink-soft); font-style:italic;
+  }
+
+  .forecast-card h2{margin-bottom:16px;}
+  .forecast-row{
+    display:grid; grid-template-columns: repeat(3, 1fr); gap:12px;
+  }
+  @media (max-width: 560px){
+    .forecast-row{grid-template-columns: 1fr;}
+  }
+  .forecast-day{
+    background:var(--bg-1);
+    border-radius:12px;
+    padding:14px;
+    text-align:center;
+  }
+  .forecast-day .day-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--ink-soft); margin-bottom:6px;
+  }
+  .forecast-day .day-icon{font-size:26px; margin-bottom:4px;}
+  .forecast-day .day-temps{font-size:14px; font-weight:600;}
+  .forecast-day .day-temps .min{color:var(--ink-soft); font-weight:400;}
+
+  .history{
+    margin-top:6px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    font-size:13px; color:var(--ink-soft);
+  }
+  .history-chip{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 12px;
+    cursor:pointer;
+    font-family:'Inter', sans-serif;
+    font-size:13px;
+  }
+  .history-chip:hover{border-color:var(--ink-soft);}
+
+  .skeleton{
+    background: linear-gradient(90deg, var(--bg-1) 25%, #eef0f5 37%, var(--bg-1) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+    border-radius:8px;
+  }
+  @keyframes shimmer{
+    0%{background-position: 100% 0;}
+    100%{background-position: -100% 0;}
+  }
+  .skeleton-line{height:14px; margin-bottom:10px;}
+  .skeleton-temp{height:64px; width:120px; margin-bottom:16px;}
+
+  footer.note{
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:30px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <h1>☁️ Weather &amp; Packing Planner</h1>
+    <span class="tagline">Live conditions, ready-to-go checklist</span>
+  </header>
+
+  <div class="instrument-strip" id="instrumentStrip"></div>
+
+  <form class="search" id="searchForm">
+    <input type="text" id="cityInput" placeholder="Search for a city... " autocomplete="off">
+    <div class="search-actions">
+      <div class="unit-toggle" id="unitToggle">
+        <button type="button" data-unit="metric" class="active">°C</button>
+        <button type="button" data-unit="imperial">°F</button>
+      </div>
+      <button type="button" class="btn-ghost" id="geoBtn">📍 Use my location</button>
+      <button type="submit" class="btn-primary" id="submitBtn">Search</button>
+    </div>
+  </form>
+
+  <div class="status info" id="statusMessage" hidden></div>
+
+  <div class="dashboard">
+    <section class="card current-card" id="currentCard">
+      <h2>Current Weather</h2>
+      <div class="skeleton skeleton-line" style="width:40%;"></div>
+      <div class="skeleton skeleton-temp"></div>
+      <div class="skeleton skeleton-line" style="width:70%;"></div>
+    </section>
+
+    <section class="card packing-card" id="packingCard">
+      <h2>Packing Recommendations</h2>
+      <p class="packing-empty">Search a city to get a packing checklist tailored to the forecast.</p>
+    </section>
+  </div>
+
+  <section class="card forecast-card" id="forecastCard">
+    <h2>3-Day Extended Forecast</h2>
+    <div class="forecast-row" id="forecastRow">
+      <div class="forecast-day"><div class="skeleton skeleton-line" style="width:60%; margin:0 auto;"></div></div>
+      <div class="forecast-day"><div class="skeleton skeleton-line" style="width:60%; margin:0 auto;"></div></div>
+      <div class="forecast-day"><div class="skeleton skeleton-line" style="width:60%; margin:0 auto;"></div></div>
+    </div>
+  </section>
+
+  <div class="history" id="historySection" hidden>
+    <span>Recent:</span>
+    <div id="historyChips" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+  </div>
+
+  <footer class="note">Data via Open-Meteo (no API key required). Temperatures convert client-side — no re-fetch on unit toggle.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- State ----------
+  const state = {
+    unit: "metric",          // "metric" | "imperial"
+    loading: false,
+    rawCurrent: null,        // { cityName, tempC, humidity, windKmh, code }
+    rawForecast: null,       // [{ dateLabel, maxC, minC, code }, ...]
+    history: []              // in-memory only (kept in JS, not localStorage)
+  };
+
+  // ---------- DOM refs ----------
+  const form = document.getElementById("searchForm");
+  const cityInput = document.getElementById("cityInput");
+  const submitBtn = document.getElementById("submitBtn");
+  const geoBtn = document.getElementById("geoBtn");
+  const statusMessage = document.getElementById("statusMessage");
+  const currentCard = document.getElementById("currentCard");
+  const packingCard = document.getElementById("packingCard");
+  const forecastRow = document.getElementById("forecastRow");
+  const unitToggle = document.getElementById("unitToggle");
+  const instrumentStrip = document.getElementById("instrumentStrip");
+  const historySection = document.getElementById("historySection");
+  const historyChips = document.getElementById("historyChips");
+
+  // ---------- WMO weather code -> category ----------
+  function codeToCategory(code){
+    if ([0].includes(code)) return "clear";
+    if ([1,2,3].includes(code)) return "clouds";
+    if ([45,48].includes(code)) return "fog";
+    if ([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code)) return "rain";
+    if ([95,96,99].includes(code)) return "thunderstorm";
+    if ([71,73,75,77,85,86].includes(code)) return "snow";
+    return "clouds";
+  }
+
+  function categoryMeta(category){
+    const map = {
+      clear:        { icon:"☀️", label:"Clear" },
+      clouds:       { icon:"☁️", label:"Cloudy" },
+      fog:          { icon:"🌫️", label:"Foggy" },
+      rain:         { icon:"🌧️", label:"Rain" },
+      thunderstorm: { icon:"⛈️", label:"Thunderstorm" },
+      snow:         { icon:"❄️", label:"Snow" }
+    };
+    return map[category] || map.clouds;
+  }
+
+  // ---------- Theming ----------
+  function applyTheme(category, tempC){
+    const themes = {
+      clearHot:  { a:"#e08a2b", b:"#f7c873" },
+      clearMild: { a:"#4f8ecf", b:"#cfe3f5" },
+      rain:      { a:"#4a6480", b:"#c7d2de" },
+      thunderstorm: { a:"#3c4b66", b:"#a9b6c9" },
+      snow:      { a:"#7fb3d5", b:"#f3f7fb" },
+      clouds:    { a:"#7b8494", b:"#d9dce2" },
+      fog:       { a:"#8d8aa0", b:"#dcdae3" }
+    };
+    let key = "clouds";
+    if (category === "clear") key = tempC >= 25 ? "clearHot" : "clearMild";
+    else if (category === "rain") key = "rain";
+    else if (category === "thunderstorm") key = "thunderstorm";
+    else if (category === "snow") key = "snow";
+    else if (category === "fog") key = "fog";
+
+    const t = themes[key];
+    const root = document.documentElement.style;
+    root.setProperty("--accent", t.a);
+    root.setProperty("--bg-2", t.b);
+    instrumentStrip.style.background = `linear-gradient(90deg, ${t.a} 0%, ${t.b} 100%)`;
+  }
+
+  function resetTheme(){
+    const root = document.documentElement.style;
+    root.setProperty("--accent", "#c98a3e");
+    root.setProperty("--bg-2", "#dfe4ee");
+    instrumentStrip.style.background = "linear-gradient(90deg, var(--accent) 0%, var(--bg-2) 100%)";
+  }
+
+  // ---------- Unit conversion (client-side only) ----------
+  function cToF(c){ return c * 9/5 + 32; }
+  function kmhToMph(k){ return k * 0.621371; }
+
+  function formatTemp(tempC){
+    if (state.unit === "imperial") return `${Math.round(cToF(tempC))}°F`;
+    return `${Math.round(tempC)}°C`;
+  }
+  function formatWind(kmh){
+    if (state.unit === "imperial") return `${Math.round(kmhToMph(kmh))} mph`;
+    return `${Math.round(kmh)} km/h`;
+  }
+
+  // ---------- Status / loading UI ----------
+  function showStatus(msg, isError){
+    statusMessage.textContent = msg;
+    statusMessage.hidden = false;
+    statusMessage.classList.toggle("info", !isError);
+  }
+  function hideStatus(){
+    statusMessage.hidden = true;
+  }
+  function setLoading(isLoading){
+    state.loading = isLoading;
+    submitBtn.disabled = isLoading;
+    geoBtn.disabled = isLoading;
+    submitBtn.textContent = isLoading ? "Searching…" : "Search";
+  }
+
+  function clearStaleData(){
+    currentCard.innerHTML = `
+      <h2>Current Weather</h2>
+      <div class="skeleton skeleton-line" style="width:40%;"></div>
+      <div class="skeleton skeleton-temp"></div>
+      <div class="skeleton skeleton-line" style="width:70%;"></div>
+    `;
+    packingCard.innerHTML = `<h2>Packing Recommendations</h2><p class="packing-empty">Fetching the forecast…</p>`;
+    forecastRow.innerHTML = `
+      <div class="forecast-day"><div class="skeleton skeleton-line" style="width:60%; margin:0 auto;"></div></div>
+      <div class="forecast-day"><div class="skeleton skeleton-line" style="width:60%; margin:0 auto;"></div></div>
+      <div class="forecast-day"><div class="skeleton skeleton-line" style="width:60%; margin:0 auto;"></div></div>
+    `;
+  }
+
+  // ---------- Rendering ----------
+  function renderCurrent(){
+    const d = state.rawCurrent;
+    if (!d) return;
+    const meta = categoryMeta(d.category);
+    currentCard.innerHTML = `
+      <h2>Current Weather</h2>
+      <p class="current-city">${d.cityName}</p>
+      <p class="current-sub">${d.country ? d.country + " · " : ""}Updated just now</p>
+      <div class="temp-row">
+        <span class="temp-big">${formatTemp(d.tempC)}</span>
+        <div>
+          <div class="condition-icon">${meta.icon}</div>
+          <div class="condition-label">${meta.label}</div>
+        </div>
+      </div>
+      <div class="metric-grid">
+        <div class="metric"><div class="label">Humidity</div><div class="value">${d.humidity}%</div></div>
+        <div class="metric"><div class="label">Wind</div><div class="value">${formatWind(d.windKmh)}</div></div>
+      </div>
+    `;
+  }
+
+  function renderForecast(){
+    const days = state.rawForecast;
+    if (!days) return;
+    forecastRow.innerHTML = days.map(day => {
+      const meta = categoryMeta(day.category);
+      return `
+        <div class="forecast-day">
+          <div class="day-label">${day.dateLabel}</div>
+          <div class="day-icon">${meta.icon}</div>
+          <div class="day-temps">${formatTemp(day.maxC)} <span class="min">/ ${formatTemp(day.minC)}</span></div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  
+  const packingRules = [
+    {
+      test: (r) => ["rain","thunderstorm"].includes(r.category),
+      items: ["☔ Pack an umbrella!","&#129509; Raincoat","get ready with &#9749; Chai and &#127850; Snacks"]
+    },
+    {
+      test: (r) => r.category === "snow",
+      items: ["🥾 Waterproof boots"]
+    },
+    {
+      test: (r) => r.tempC < 10,
+      items: ["🧥 Heavy coat", "🧤 Gloves", "Blazer","Wear heavy and dark coloured clothes"]
+    },
+    {
+      test: (r) => r.tempC > 30,
+      items: ["🩳 Light clothing", "🧴 Sunscreen"]
+    },
+    {
+      test: (r) => r.humidity > 70,
+      items: ["Breathable fabrics recommended"]
+    }
+  ];
+
+  function getPackingSuggestions(reading){
+    const items = [];
+    for (const rule of packingRules){
+      if (rule.test(reading)) items.push(...rule.items);
+    }
+    // de-dupe while preserving order
+    return [...new Set(items)];
+  }
+
+  function renderPacking(){
+    const d = state.rawCurrent;
+    if (!d) return;
+    const meta = categoryMeta(d.category);
+    const suggestions = getPackingSuggestions({ category: d.category, tempC: d.tempC, humidity: d.humidity });
+
+    const list = suggestions.length
+      ? `<ul class="packing-list">${suggestions.map(s => `<li><span class="check"></span>${s}</li>`).join("")}</ul>`
+      : `<p class="packing-empty">Conditions look mild — no special packing needed.</p>`;
+
+    packingCard.innerHTML = `
+      <h2>Packing Recommendations</h2>
+      <p class="packing-condition">Weather condition: ${meta.label}${d.tempC < 10 ? " &amp; Cold" : d.tempC > 30 ? " &amp; Hot" : ""}</p>
+      ${list}
+    `;
+  }
+
+  function renderAll(){
+    renderCurrent();
+    renderForecast();
+    renderPacking();
+  }
+
+  // ---------- History (in-memory, no localStorage) ----------
+  function pushHistory(cityName){
+    state.history = [cityName, ...state.history.filter(c => c.toLowerCase() !== cityName.toLowerCase())].slice(0, 5);
+    renderHistory();
+  }
+  function renderHistory(){
+    if (!state.history.length){
+      historySection.hidden = true;
+      return;
+    }
+    historySection.hidden = false;
+    historyChips.innerHTML = state.history.map(c =>
+      `<button type="button" class="history-chip" data-city="${c}">${c}</button>`
+    ).join("");
+  }
+  historyChips.addEventListener("click", (e) => {
+    const btn = e.target.closest(".history-chip");
+    if (!btn) return;
+    cityInput.value = btn.dataset.city;
+    fetchWeather(btn.dataset.city);
+  });
+
+  // ---------- Date labels ----------
+  function labelForOffset(offset){
+    if (offset === 1) return "Tomorrow";
+    if (offset === 2) return "Day After";
+    return `Day ${offset}`;
+  }
+
+  // ---------- API calls ----------
+  async function geocodeCity(cityName){
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("network");
+    const data = await res.json();
+    if (!data.results || data.results.length === 0) throw new Error("not-found");
+    return data.results[0];
+  }
+
+  async function fetchForecast(lat, lon){
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
+      `&timezone=auto&forecast_days=4`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("network");
+    return res.json();
+  }
+
+  async function fetchWeather(cityNameInput){
+    const cityName = cityNameInput.trim();
+    if (!cityName) return; // empty input -> no request
+
+    hideStatus();
+    setLoading(true);
+    clearStaleData();
+
+    try {
+      const place = await geocodeCity(cityName);
+      const json = await fetchForecast(place.latitude, place.longitude);
+
+      // -- parse nested JSON into flat reading objects --
+      const current = json.current;
+      const category = codeToCategory(current.weather_code);
+
+      state.rawCurrent = {
+        cityName: place.name,
+        country: place.country,
+        tempC: current.temperature_2m,
+        humidity: current.relative_humidity_2m,
+        windKmh: current.wind_speed_10m,
+        code: current.weather_code,
+        category
+      };
+
+      const daily = json.daily;
+      const forecastDays = [];
+      for (let i = 1; i <= 3 && i < daily.time.length; i++){
+        forecastDays.push({
+          dateLabel: labelForOffset(i),
+          maxC: daily.temperature_2m_max[i],
+          minC: daily.temperature_2m_min[i],
+          code: daily.weather_code[i],
+          category: codeToCategory(daily.weather_code[i])
+        });
+      }
+      state.rawForecast = forecastDays;
+
+      applyTheme(category, current.temperature_2m);
+      renderAll();
+      pushHistory(place.name);
+
+    } catch (err) {
+      resetTheme();
+      currentCard.innerHTML = `<h2>Current Weather</h2><p class="packing-empty">No data to show.</p>`;
+      packingCard.innerHTML = `<h2>Packing Recommendations</h2><p class="packing-empty">No data to show.</p>`;
+      forecastRow.innerHTML = "";
+
+      if (err.message === "not-found"){
+        showStatus(`We couldn't find "${cityName}". Check the spelling and try again.`, true);
+      } else {
+        showStatus("Something went wrong reaching the weather service. Please try again in a moment.", true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ---------- Event wiring ----------
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (state.loading) return;
+    fetchWeather(cityInput.value);
+  });
+
+  unitToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-unit]");
+    if (!btn) return;
+    state.unit = btn.dataset.unit;
+    [...unitToggle.querySelectorAll("button")].forEach(b => b.classList.toggle("active", b === btn));
+    renderAll(); // re-render from stored raw data, no re-fetch
+  });
+
+  geoBtn.addEventListener("click", () => {
+    if (!navigator.geolocation){
+      showStatus("Geolocation isn't available in this browser.", true);
+      return;
+    }
+    setLoading(true);
+    hideStatus();
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          clearStaleData();
+          const json = await fetchForecast(latitude, longitude);
+          const current = json.current;
+          const category = codeToCategory(current.weather_code);
+
+          state.rawCurrent = {
+            cityName: "Your location",
+            country: "",
+            tempC: current.temperature_2m,
+            humidity: current.relative_humidity_2m,
+            windKmh: current.wind_speed_10m,
+            code: current.weather_code,
+            category
+          };
+
+          const daily = json.daily;
+          const forecastDays = [];
+          for (let i = 1; i <= 3 && i < daily.time.length; i++){
+            forecastDays.push({
+              dateLabel: labelForOffset(i),
+              maxC: daily.temperature_2m_max[i],
+              minC: daily.temperature_2m_min[i],
+              code: daily.weather_code[i],
+              category: codeToCategory(daily.weather_code[i])
+            });
+          }
+          state.rawForecast = forecastDays;
+
+          applyTheme(category, current.temperature_2m);
+          renderAll();
+        } catch (err) {
+          showStatus("Couldn't load weather for your location. Please try a city search instead.", true);
+        } finally {
+          setLoading(false);
+        }
+      },
+      () => {
+        showStatus("Location permission was denied. Try searching for a city instead.", true);
+        setLoading(false);
+      }
+    );
+  });
+
+})();
+</script>
+</body>
+</html>
